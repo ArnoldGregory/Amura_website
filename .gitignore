@@ -2,3 +2,7 @@ bin/
 obj/
 .vs/
 *.user
+
+# Local stopgap store for Get Quote / Contact submissions — contains real
+# customer PII, must never be committed. Remove once the real backend exists.
+App_Data/

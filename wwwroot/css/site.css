@@ -481,3 +481,13 @@ a { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; transition: none; }
 }
+
+/* Honeypot field (anti-spam) — off-screen for real visitors, still present in the DOM
+   and tabbed-past, which is what makes bots that blind-fill every input trip it. */
+.hp-field {
+    position: absolute;
+    left: -5000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
