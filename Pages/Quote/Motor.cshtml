@@ -1,0 +1,90 @@
+@page
+@model AmuraWebsite.Pages.Quote.MotorModel
+@{
+    ViewData["Title"] = "Motor Insurance Quote";
+    ViewData["Description"] = "Get a motor insurance quote from Amura Insurance Agency.";
+}
+
+<section class="hero" style="padding: 6rem 0 4.5rem;">
+    <div class="container hero-content">
+        <span class="hero-kicker">Motor Insurance</span>
+        <h1 style="font-size:clamp(2rem,4vw,2.8rem); max-width: 20ch;">Get a motor cover quote.</h1>
+        <p class="lead">Tell us about your vehicle and we'll come back with options.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-7 reveal">
+                <div class="contact-card">
+
+                    @if (Model.Submitted)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            Thanks — your quote request has been received@(string.IsNullOrEmpty(Model.ReferenceNumber) ? "." : $" (ref. {Model.ReferenceNumber}).") We'll be in touch shortly.
+                        </div>
+                    }
+
+                    <form method="post" novalidate>
+                        <input type="hidden" asp-for="FormToken" />
+                        <div style="position:absolute; left:-9999px; opacity:0;" aria-hidden="true">
+                            <label for="Input_Website">Leave this field blank</label>
+                            <input asp-for="Input.Website" tabindex="-1" autocomplete="off" />
+                        </div>
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Input.FullName" class="form-label">Full name</label>
+                                <input asp-for="Input.FullName" class="form-control" placeholder="Jane Wanjiku" />
+                                <span asp-validation-for="Input.FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.Phone" class="form-label">Phone</label>
+                                <input asp-for="Input.Phone" class="form-control" placeholder="07xx xxx xxx" />
+                                <span asp-validation-for="Input.Phone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Input.Email" class="form-label">Email</label>
+                                <input asp-for="Input.Email" class="form-control" placeholder="jane@example.com" />
+                                <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.VehicleMake" class="form-label">Vehicle make</label>
+                                <input asp-for="Input.VehicleMake" class="form-control" placeholder="e.g. Toyota" />
+                                <span asp-validation-for="Input.VehicleMake" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.VehicleModel" class="form-label">Vehicle model</label>
+                                <input asp-for="Input.VehicleModel" class="form-control" placeholder="e.g. Vitz" />
+                                <span asp-validation-for="Input.VehicleModel" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.YearOfManufacture" class="form-label">Year of manufacture</label>
+                                <input asp-for="Input.YearOfManufacture" class="form-control" type="number" min="1980" max="2027" />
+                                <span asp-validation-for="Input.YearOfManufacture" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.CoverType" class="form-label">Cover type</label>
+                                <select asp-for="Input.CoverType" class="form-select">
+                                    <option value="Comprehensive" selected>Comprehensive</option>
+                                    <option value="Third Party">Third Party</option>
+                                    <option value="Not sure">Not sure — advise me</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-quote btn-lg mt-4">Get my quote</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-5 reveal">
+                <span class="eyebrow">What's covered</span>
+                <h2 class="mt-3 mb-4" style="font-size:1.5rem; font-weight:600;">Motor insurance</h2>
+                <p class="text-muted">Comprehensive or third-party cover for your vehicle, arranged through our licensed insurer partners.</p>
+            </div>
+        </div>
+    </div>
+</section>
