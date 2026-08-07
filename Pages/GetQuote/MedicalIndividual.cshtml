@@ -1,0 +1,81 @@
+@page "/get-quote/medical-individual"
+@model AmuraWebsite.Pages.GetQuote.MedicalIndividualModel
+@{
+    ViewData["Title"] = "Medical Cover Quote — Individual & Family";
+    ViewData["Description"] = "Request a quote for individual or family medical cover from Amura Insurance Agency.";
+}
+
+<section class="hero" style="padding: 6rem 0 4.5rem;">
+    <div class="container hero-content">
+        <span class="hero-kicker">Medical — Individual &amp; Family</span>
+        <h1 style="font-size:clamp(2rem,4.2vw,3rem); max-width: 20ch;">Tell us who needs cover.</h1>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-7 reveal">
+                <div class="contact-card">
+
+                    @if (Model.Submitted)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            Thanks — your quote request has been received. We'll be in touch shortly.
+                        </div>
+                    }
+                    else
+                    {
+                        <form method="post" novalidate>
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                            <partial name="_Honeypot" />
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Input.FullName" class="form-label">Full name</label>
+                                    <input asp-for="Input.FullName" class="form-control" placeholder="Jane Wanjiku" />
+                                    <span asp-validation-for="Input.FullName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Input.Phone" class="form-label">Phone</label>
+                                    <input asp-for="Input.Phone" class="form-control" placeholder="07xx xxx xxx" />
+                                    <span asp-validation-for="Input.Phone" class="text-danger small"></span>
+                                </div>
+                                <div class="col-12">
+                                    <label asp-for="Input.Email" class="form-label">Email</label>
+                                    <input asp-for="Input.Email" class="form-control" placeholder="jane@example.com" />
+                                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Input.PlanType" class="form-label">Cover for</label>
+                                    <select asp-for="Input.PlanType" class="form-select">
+                                        <option value="">Choose...</option>
+                                        <option value="Individual">Myself only</option>
+                                        <option value="Family">Myself and family</option>
+                                    </select>
+                                    <span asp-validation-for="Input.PlanType" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Input.Dependents" class="form-label">Number of dependents</label>
+                                    <input asp-for="Input.Dependents" type="number" min="0" class="form-control" />
+                                </div>
+                                <div class="col-12">
+                                    <label asp-for="Input.AdditionalDetails" class="form-label">Anything else we should know? (optional)</label>
+                                    <textarea asp-for="Input.AdditionalDetails" class="form-control" rows="4" placeholder="e.g. existing conditions, preferred hospitals, dental/optical add-ons"></textarea>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-quote btn-lg mt-4">Request quote</button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-5 reveal">
+                <span class="eyebrow">Medical — Individual &amp; Family</span>
+                <h2 class="mt-3 mb-4" style="font-size:1.6rem; font-weight:600;">What's covered</h2>
+                <p class="text-muted">Inpatient and outpatient cover sized for one person or the whole household, with options to add dental, optical and maternity.</p>
+            </div>
+        </div>
+    </div>
+</section>
