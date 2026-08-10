@@ -7,30 +7,24 @@
 
 <!-- ============================= HERO ============================= -->
 <section class="hero">
-    <div class="hero-bg" style="background-image: linear-gradient(100deg, rgba(11,11,12,0.93) 30%, rgba(11,11,12,0.6) 65%, rgba(11,11,12,0.3) 100%), url('@Url.Content("~/images/hero-family.jpg")');"></div>
-    <div class="container hero-content">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-8">
-                <span class="hero-kicker">Amura Insurance Agency</span>
-                <h1>
-                    Cover that fits your life,<br />
-                    not the other way around.
-                </h1>
-                <p class="lead">
-                    <!-- PENDING: replace with confirmed copy from Amura (Task 5 — Content integration) -->
-                    Medical, Motor, Travel, Domestic and Professional Indemnity cover —
-                    guided by people who take the time to get your quote right the first time.
-                </p>
-                <div class="hero-actions d-flex flex-wrap gap-3">
-                    <a asp-page="/Services" class="btn btn-quote btn-lg">Get a Quote</a>
-                    <a asp-page="/Services" class="btn btn-ghost-light btn-lg">Explore Products</a>
-                </div>
-            </div>
-            <div class="col-lg-4 d-none d-lg-flex justify-content-center">
-                <div class="seal">
-                    <div class="seal-inner">AMURA<br />INSURANCE<br />AGENCY</div>
-                </div>
-            </div>
+    <div class="hero-bg" style="background-image: radial-gradient(ellipse at 50% 40%, rgba(11,11,12,0.9) 0%, rgba(11,11,12,0.72) 55%, rgba(11,11,12,0.5) 100%), url('@Url.Content("~/images/hero-family.jpg")');"></div>
+    <div class="container hero-content text-center" style="max-width: 860px;">
+        <span class="hero-kicker">Amura Insurance Agency</span>
+        <h1>
+            Cover that fits your life,<br />
+            <span class="hero-emphasis">not the other way around.</span>
+        </h1>
+        <p class="lead mx-auto">
+            <!-- PENDING: replace with confirmed copy from Amura (Task 5 — Content integration) -->
+            Medical, Motor, Travel, Domestic and Professional Indemnity cover —
+            guided by people who take the time to get your quote right the first time.
+        </p>
+        <div class="hero-actions d-flex flex-wrap justify-content-center gap-3">
+            <a asp-page="/Services" class="btn btn-quote btn-lg">Get a Quote</a>
+            <a asp-page="/Services" class="btn btn-ghost-light btn-lg">Explore Products</a>
+        </div>
+        <div class="seal seal-centered">
+            <div class="seal-inner">AMURA<br />INSURANCE<br />AGENCY</div>
         </div>
     </div>
 </section>
