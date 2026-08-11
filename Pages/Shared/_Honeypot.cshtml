@@ -1,7 +1,0 @@
-@* Honeypot field shared by every public form. Include inside <form>, and check
-   AmuraWebsite.Helpers.SpamGuard.IsHoneypotTripped(Model.Input.Website) in OnPost
-   before doing anything else with the submission. *@
-<div class="hp-field" aria-hidden="true">
-    <label for="Website">Leave this field blank</label>
-    <input type="text" id="Website" name="Input.Website" tabindex="-1" autocomplete="off" />
-</div>
