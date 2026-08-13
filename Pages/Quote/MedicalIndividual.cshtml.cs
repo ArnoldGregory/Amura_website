@@ -65,11 +65,7 @@ public class MedicalIndividualModel : PageModel
             Details = new()
             {
                 ["IdNo"] = Input.IdNo,
-<<<<<<< HEAD
                 ["DateOfBirth"] = Input.DateOfBirth!.Value.ToString("yyyy-MM-dd"),
-=======
-                ["DateOfBirth"] = Input.DateOfBirth.ToString("yyyy-MM-dd"),
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
                 ["FamilyMembersJson"] = JsonSerializer.Serialize(familyMembers)
             }
         };
@@ -103,13 +99,8 @@ public class MedicalIndividualModel : PageModel
         [Display(Name = "National ID / Passport number")]
         public string IdNo { get; set; } = string.Empty;
 
-<<<<<<< HEAD
         [Required(ErrorMessage = "Date of birth is required."), DataType(DataType.Date)]
         public DateTime? DateOfBirth { get; set; }
-=======
-        [Required, DataType(DataType.Date)]
-        public DateTime DateOfBirth { get; set; }
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
 
         // Up to 5 dependant rows — matches the platform's familyMembers[]
         // array (relationship must be "Spouse", at most one, or "Child",

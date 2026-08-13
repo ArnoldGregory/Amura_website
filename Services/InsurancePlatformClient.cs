@@ -13,7 +13,6 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
 
     private static readonly TimeSpan AssumedTokenLifetime = TimeSpan.FromMinutes(45);
 
-<<<<<<< HEAD
     // The real API returns lowercase JSON keys (success/data/token) while
     // our DTOs are PascalCase for normal C# style — System.Text.Json is
     // case-sensitive by default, so without this every response would
@@ -24,8 +23,6 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
         PropertyNameCaseInsensitive = true
     };
 
-=======
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
     public InsurancePlatformClient(
         HttpClient http,
         IOptions<InsurancePlatformOptions> options,
@@ -167,11 +164,7 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
                 return null;
             }
 
-<<<<<<< HEAD
             var envelope = await response.Content.ReadFromJsonAsync<ApiEnvelope<QuoteRequestResponseData>>(JsonOptions, ct);
-=======
-            var envelope = await response.Content.ReadFromJsonAsync<ApiEnvelope<QuoteRequestResponseData>>(cancellationToken: ct);
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
             if (envelope is { Success: true } && envelope.Data?.QuoteRequestId is { } id)
             {
                 return id;
@@ -215,11 +208,7 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
                 return null;
             }
 
-<<<<<<< HEAD
             var envelope = await response.Content.ReadFromJsonAsync<ApiEnvelope<LoginResponseData>>(JsonOptions, ct);
-=======
-            var envelope = await response.Content.ReadFromJsonAsync<ApiEnvelope<LoginResponseData>>(cancellationToken: ct);
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
             if (envelope is { Success: true } && !string.IsNullOrEmpty(envelope.Data?.Token))
             {
                 _tokenCache.SetToken(envelope.Data.Token, AssumedTokenLifetime);

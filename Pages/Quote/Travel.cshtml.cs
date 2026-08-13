@@ -30,11 +30,7 @@ public class TravelModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-<<<<<<< HEAD
         if (Input.DepartureDate.HasValue && Input.ReturnDate.HasValue && Input.ReturnDate < Input.DepartureDate)
-=======
-        if (Input.ReturnDate < Input.DepartureDate)
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
         {
             ModelState.AddModelError(nameof(Input.ReturnDate), "Return date can't be before the departure date.");
         }
@@ -58,19 +54,11 @@ public class TravelModel : PageModel
             ContactPhone = Input.Phone,
             Details = new()
             {
-<<<<<<< HEAD
                 ["DateOfBirth"] = Input.DateOfBirth!.Value.ToString("yyyy-MM-dd"),
                 ["KraPin"] = Input.KraPin ?? string.Empty,
                 ["Destination"] = Input.Destination,
                 ["DepartureDate"] = Input.DepartureDate!.Value.ToString("yyyy-MM-dd"),
                 ["ReturnDate"] = Input.ReturnDate!.Value.ToString("yyyy-MM-dd"),
-=======
-                ["DateOfBirth"] = Input.DateOfBirth.ToString("yyyy-MM-dd"),
-                ["KraPin"] = Input.KraPin ?? string.Empty,
-                ["Destination"] = Input.Destination,
-                ["DepartureDate"] = Input.DepartureDate.ToString("yyyy-MM-dd"),
-                ["ReturnDate"] = Input.ReturnDate.ToString("yyyy-MM-dd"),
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
                 ["TravellingWithFamily"] = Input.TravellingWithFamily.ToString(),
                 ["TripType"] = Input.TripType
             }
@@ -97,15 +85,9 @@ public class TravelModel : PageModel
         [Required, Phone]
         public string Phone { get; set; } = string.Empty;
 
-<<<<<<< HEAD
         [Required(ErrorMessage = "Date of birth is required."), DataType(DataType.Date)]
         [Display(Name = "Date of birth")]
         public DateTime? DateOfBirth { get; set; }
-=======
-        [Required, DataType(DataType.Date)]
-        [Display(Name = "Date of birth")]
-        public DateTime DateOfBirth { get; set; }
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
 
         [StringLength(20)]
         [Display(Name = "KRA PIN (optional)")]
@@ -114,19 +96,11 @@ public class TravelModel : PageModel
         [Required, StringLength(120)]
         public string Destination { get; set; } = string.Empty;
 
-<<<<<<< HEAD
         [Required(ErrorMessage = "Departure date is required."), DataType(DataType.Date)]
         public DateTime? DepartureDate { get; set; }
 
         [Required(ErrorMessage = "Return date is required."), DataType(DataType.Date)]
         public DateTime? ReturnDate { get; set; }
-=======
-        [Required, DataType(DataType.Date)]
-        public DateTime DepartureDate { get; set; }
-
-        [Required, DataType(DataType.Date)]
-        public DateTime ReturnDate { get; set; }
->>>>>>> cff447d3d43ed2aaef6127c261952d345a8fab76
 
         [Display(Name = "Travelling with family?")]
         public bool TravellingWithFamily { get; set; }
