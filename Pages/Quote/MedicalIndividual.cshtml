@@ -34,6 +34,9 @@
                         </div>
                         <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
+                        <h3 style="font-size:1.15rem; font-weight:700; margin: 0 0 0.2rem;">Section 1: Your Information</h3>
+                        <p class="text-muted small mb-3">Tell us who this cover is for.</p>
+
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label asp-for="Input.FullName" class="form-label">Full name</label>
@@ -63,8 +66,9 @@
                         </div>
 
                         <hr class="my-4" />
-                        <h3 style="font-size:1.05rem; font-weight:600;">Dependants to cover (optional)</h3>
-                        <p class="text-muted small mb-3">Add a spouse and/or children — leave rows blank if not needed. Only one spouse can be listed.</p>
+
+                        <h3 style="font-size:1.15rem; font-weight:700; margin: 0 0 0.2rem;">Section 2: Dependants to Cover</h3>
+                        <p class="text-muted small mb-3">Optional — add a spouse and/or children, or leave rows blank if not needed. Only one spouse can be listed.</p>
 
                         @{
                             var dependents = new[]
@@ -90,7 +94,7 @@
                                     </select>
                                 </div>
                                 <div class="col-md-5">
-                                    <label class="form-label small">Full name</label>
+                                    <label class="form-label small">Full name</label> 
                                     <input name="@($"{prefix}.FullName")" value="@dependents[i].Item2.FullName" class="form-control form-control-sm" />
                                 </div>
                                 <div class="col-md-4">
