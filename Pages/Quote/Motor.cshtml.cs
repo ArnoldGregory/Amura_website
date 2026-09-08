@@ -23,9 +23,9 @@ public class MotorModel : PageModel
     public bool Submitted { get; set; }
     public string? ReferenceNumber { get; set; }
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
-        FormToken = SpamGuard.GenerateFormToken();
+        return RedirectToPage("/Quote/Motor/ComprehensiveQuote");
     }
 
     public async Task<IActionResult> OnPostAsync()
