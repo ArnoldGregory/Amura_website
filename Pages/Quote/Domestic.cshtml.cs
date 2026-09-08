@@ -39,6 +39,7 @@ public class DomesticModel : PageModel
             ContactPhone = Input.Phone,
             Details = new()
             {
+                ["IdNo"] = Input.IdNo,
                 ["PropertyAddress"] = Input.PropertyAddress,
                 ["PropertyType"] = Input.PropertyType,
                 ["EstimatedValue"] = Input.EstimatedValue
@@ -50,13 +51,13 @@ public class DomesticModel : PageModel
         return Page();
     }
 
-    // PENDING: this field list is a placeholder. The project plan calls out
-    // a separate Domestic Insurance field-list spreadsheet from Amura that
-    // needs to be confirmed and swapped in here before this ships.
     public class FormInput
     {
         [Required, StringLength(120)]
         public string FullName { get; set; } = string.Empty;
+
+        [Required, StringLength(40)]
+        public string IdNo { get; set; } = string.Empty;
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;

@@ -2,32 +2,6 @@ using System.Text.Json;
 
 namespace AmuraWebsite.Services;
 
-/// <summary>
-/// Working implementation of Task #4. Every submission gets a reference
-/// number and is appended to App_Data/submissions.jsonl so nothing is lost
-/// even before a real back-office system or database is wired up — this
-/// local persistence always happens, regardless of what's below.
-///
-/// Real Insurance Platform API integration: all 5 non-Motor product types
-/// (Medical Individual, Medical Corporate, Professional Indemnity, Travel,
-/// Domestic) now submit to the real backend via IInsurancePlatformClient,
-/// matching the exact field contracts confirmed in the "Website - Full
-/// Client Journey" Postman collection. Motor isn't a simple "quote request"
-/// on the real platform at all — it's a full live pricing + client/vehicle
-/// registration + purchase + M-Pesa STK push flow, structurally different
-/// from a lead-capture form and out of scope here; its Get Quote form stays
-/// local-only, same as Contact.
-///
-/// If the platform isn't configured (see appsettings.json
-/// InsurancePlatform:BaseUrl / WebsiteGuestApiKey) or a call fails for any
-/// reason, this silently falls back to local-only — nothing the user sees
-/// changes, and no submission is ever lost either way.
-///
-/// One thing still stubbed pending an Amura decision (see the plan's
-/// "Integrations & APIs" sheet): the client acknowledgement email. Swap in
-/// a real transactional-email call once a provider is chosen — isolated
-/// here on purpose so that doesn't touch any form page either.
-/// </summary>
 public sealed class QuoteSubmissionService : IQuoteSubmissionService
 {
     private readonly ILogger<QuoteSubmissionService> _logger;
@@ -52,27 +26,29 @@ public sealed class QuoteSubmissionService : IQuoteSubmissionService
 
         if (_platformClient.IsConfigured)
         {
-            var platformId = await TrySubmitToPlatformAsync(submission, ct);
-            if (platformId != null)
+            var platformResult = await TrySubmitToPlatformAsync(submission, ct);
+            if (platformResult != null)
             {
-                submission.Details["PlatformQuoteRequestId"] = platformId;
+                if (platformResult.QuoteRequestId != null)
+                {
+                    submission.Details["PlatformQuoteRequestId"] = platformResult.QuoteRequestId;
+                }
+                if (platformResult.RefNo != null)
+                {
+                    submission.Details["PlatformRefNo"] = platformResult.RefNo;
+                }
                 _logger.LogInformation(
-                    "Submission {Reference} also created on the Insurance Platform as quoteRequestId {PlatformId}.",
-                    submission.ReferenceNumber, platformId);
+                    "Submission {Reference} also created on the Insurance Platform as quoteRequestId {PlatformId} (refNo {RefNo}).",
+                    submission.ReferenceNumber, platformResult.QuoteRequestId, platformResult.RefNo);
             }
         }
 
         await PersistAsync(submission, ct);
 
-        // Back-office routing — for types not yet wired to the real
-        // platform (or if the platform call above didn't succeed), this is
-        // the only routing that happens right now.
         _logger.LogInformation(
             "Quote submission {Reference} ({Type}) from {Name} <{Email}> routed to back office.",
             submission.ReferenceNumber, submission.Type, submission.ContactName, submission.ContactEmail);
 
-        // Client acknowledgement — TODO: replace with real transactional
-        // email send once a provider is chosen (SendGrid / Amazon SES / etc).
         _logger.LogInformation(
             "Acknowledgement email queued for {Email} — reference {Reference}.",
             submission.ContactEmail, submission.ReferenceNumber);
@@ -80,7 +56,7 @@ public sealed class QuoteSubmissionService : IQuoteSubmissionService
         return submission.ReferenceNumber;
     }
 
-    private Task<string?> TrySubmitToPlatformAsync(QuoteSubmission submission, CancellationToken ct)
+    private Task<PlatformSubmissionResult?> TrySubmitToPlatformAsync(QuoteSubmission submission, CancellationToken ct)
     {
         return submission.Type switch
         {
@@ -90,29 +66,31 @@ public sealed class QuoteSubmissionService : IQuoteSubmissionService
                 submission.Details.GetValueOrDefault("CompanyName", string.Empty),
                 submission.ContactPhone ?? string.Empty,
                 submission.ContactEmail,
+                submission.Details.GetValueOrDefault("IdNo", string.Empty),
                 ct),
 
-            // Only the initial PI capture matches this endpoint's shape —
-            // the follow-up Proposal page collects different fields
-            // entirely and isn't a "request quote" call.
             SubmissionType.ProfessionalIndemnity when submission.Details.GetValueOrDefault("Stage") != "Proposal" =>
                 _platformClient.SubmitProfessionalIndemnityAsync(
                     submission.ContactName,
                     submission.ContactPhone ?? string.Empty,
                     submission.ContactEmail,
                     submission.Details.GetValueOrDefault("Profession", string.Empty),
+                    submission.Details.GetValueOrDefault("IdNo", string.Empty),
                     ct),
 
             SubmissionType.Travel => SubmitTravelAsync(submission, ct),
 
             SubmissionType.Domestic => _platformClient.SubmitDomesticAsync(
-                BuildDomesticDetailsJson(submission), ct),
+            BuildDomesticDetailsJson(submission),
+            submission.Details.GetValueOrDefault("IdNo", string.Empty),
+            submission.ContactEmail,
+            ct),
 
-            _ => Task.FromResult<string?>(null)
+            _ => Task.FromResult<PlatformSubmissionResult?>(null)
         };
     }
 
-    private Task<string?> SubmitMedicalIndividualAsync(QuoteSubmission submission, CancellationToken ct)
+    private Task<PlatformSubmissionResult?> SubmitMedicalIndividualAsync(QuoteSubmission submission, CancellationToken ct)
     {
         var familyMembers = new List<(string Relationship, string FullName, DateTime DateOfBirth)>();
         if (submission.Details.TryGetValue("FamilyMembersJson", out var json) && !string.IsNullOrWhiteSpace(json))
@@ -135,7 +113,7 @@ public sealed class QuoteSubmissionService : IQuoteSubmissionService
             ct);
     }
 
-    private Task<string?> SubmitTravelAsync(QuoteSubmission submission, CancellationToken ct)
+    private Task<PlatformSubmissionResult?> SubmitTravelAsync(QuoteSubmission submission, CancellationToken ct)
     {
         return _platformClient.SubmitTravelAsync(
             submission.ContactName,
@@ -146,6 +124,8 @@ public sealed class QuoteSubmissionService : IQuoteSubmissionService
             ParseIsoDate(submission.Details.GetValueOrDefault("ReturnDate", DateTime.UtcNow.ToString("yyyy-MM-dd"))),
             bool.TryParse(submission.Details.GetValueOrDefault("TravellingWithFamily"), out var withFamily) && withFamily,
             submission.Details.GetValueOrDefault("TripType", "VACATION"),
+            submission.Details.GetValueOrDefault("IdNo", string.Empty),
+            submission.ContactEmail,
             ct);
     }
 
@@ -165,6 +145,8 @@ public sealed class QuoteSubmissionService : IQuoteSubmissionService
         {
             fullName = submission.ContactName,
             phone = submission.ContactPhone,
+            idNo = submission.Details.GetValueOrDefault("IdNo"),
+            email = submission.ContactEmail,
             propertyAddress = submission.Details.GetValueOrDefault("PropertyAddress"),
             propertyType = submission.Details.GetValueOrDefault("PropertyType"),
             estimatedValue = submission.Details.GetValueOrDefault("EstimatedValue")

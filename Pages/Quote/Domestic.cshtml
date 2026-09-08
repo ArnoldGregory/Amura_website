@@ -5,24 +5,11 @@
     ViewData["Description"] = "Get a domestic insurance quote from Amura Insurance Agency.";
 }
 
-<section class="hero" style="padding: 6rem 0 4.5rem;">
-    <div class="container hero-content">
-        <span class="hero-kicker">Domestic Insurance</span>
-        <h1 style="font-size:clamp(2rem,4vw,2.8rem); max-width: 20ch;">Get a home cover quote.</h1>
-        <p class="lead">Tell us about your property and we'll come back with options.</p>
-    </div>
-</section>
-
 <section class="section">
     <div class="container">
         <div class="row g-5">
             <div class="col-lg-7 reveal">
                 <div class="contact-card">
-
-                    <!-- PENDING: this form uses a placeholder field list.
-                         Swap in Amura's confirmed Domestic Insurance field
-                         list (separate spreadsheet, per the project plan)
-                         before this ships. -->
 
                     @if (Model.Submitted)
                     {
@@ -36,27 +23,32 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label asp-for="Input.FullName" class="form-label">Full name</label>
+                                <label asp-for="Input.FullName" class="form-label">Full name *</label>
                                 <input asp-for="Input.FullName" class="form-control" placeholder="Jane Wanjiku" />
                                 <span asp-validation-for="Input.FullName" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="Input.Phone" class="form-label">Phone</label>
+                                <label asp-for="Input.IdNo" class="form-label">National ID / Passport number *</label>
+                                <input asp-for="Input.IdNo" class="form-control" placeholder="e.g. 33333333" />
+                                <span asp-validation-for="Input.IdNo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.Phone" class="form-label">Phone *</label>
                                 <input asp-for="Input.Phone" class="form-control" placeholder="07xx xxx xxx" />
                                 <span asp-validation-for="Input.Phone" class="text-danger small"></span>
                             </div>
                             <div class="col-12">
-                                <label asp-for="Input.Email" class="form-label">Email</label>
+                                <label asp-for="Input.Email" class="form-label">Email *</label>
                                 <input asp-for="Input.Email" class="form-control" placeholder="jane@example.com" />
                                 <span asp-validation-for="Input.Email" class="text-danger small"></span>
                             </div>
                             <div class="col-12">
-                                <label asp-for="Input.PropertyAddress" class="form-label">Property address</label>
+                                <label asp-for="Input.PropertyAddress" class="form-label">Property address *</label>
                                 <input asp-for="Input.PropertyAddress" class="form-control" placeholder="Plot / street, area, town" />
                                 <span asp-validation-for="Input.PropertyAddress" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="Input.PropertyType" class="form-label">Property type</label>
+                                <label asp-for="Input.PropertyType" class="form-label">Property type *</label>
                                 <select asp-for="Input.PropertyType" class="form-select">
                                     <option value="House">House</option>
                                     <option value="Apartment">Apartment</option>
@@ -64,7 +56,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="Input.EstimatedValue" class="form-label">Estimated value to insure</label>
+                                <label asp-for="Input.EstimatedValue" class="form-label">Estimated value to insure *</label>
                                 <input asp-for="Input.EstimatedValue" class="form-control" placeholder="e.g. KES 3,000,000" />
                                 <span asp-validation-for="Input.EstimatedValue" class="text-danger small"></span>
                             </div>

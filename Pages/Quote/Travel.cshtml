@@ -5,18 +5,10 @@
     ViewData["Description"] = "Get a travel insurance quote from Amura Insurance Agency.";
 }
 
-<section class="hero" style="padding: 6rem 0 4.5rem;">
-    <div class="container hero-content">
-        <span class="hero-kicker">Travel Insurance</span>
-        <h1 style="font-size:clamp(2rem,4vw,2.8rem); max-width: 20ch;">Get a travel cover quote.</h1>
-        <p class="lead">Tell us about your trip and we'll come back with options.</p>
-    </div>
-</section>
-
 <section class="section">
     <div class="container">
         <div class="row g-5">
-            <div class="col-lg-7 reveal">
+            <div class="col-lg-7 reveal"> 
                 <div class="contact-card">
 
                     @if (Model.Submitted)
@@ -41,6 +33,11 @@
                                 <span asp-validation-for="Input.FullName" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6">
+                                <label asp-for="Input.IdNo" class="form-label">National ID / Passport number</label>
+                                <input asp-for="Input.IdNo" class="form-control" placeholder="e.g. 33333333" />
+                                <span asp-validation-for="Input.IdNo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
                                 <label asp-for="Input.DateOfBirth" class="form-label">Date of birth</label>
                                 <input asp-for="Input.DateOfBirth" class="form-control" type="date" />
                                 <span asp-validation-for="Input.DateOfBirth" class="text-danger small"></span>
@@ -50,7 +47,7 @@
                                 <input asp-for="Input.Phone" class="form-control" placeholder="07xx xxx xxx" />
                                 <span asp-validation-for="Input.Phone" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <label asp-for="Input.Email" class="form-label">Email</label>
                                 <input asp-for="Input.Email" class="form-control" placeholder="jane@example.com" />
                                 <span asp-validation-for="Input.Email" class="text-danger small"></span>

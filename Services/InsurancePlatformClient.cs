@@ -13,11 +13,6 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
 
     private static readonly TimeSpan AssumedTokenLifetime = TimeSpan.FromMinutes(45);
 
-    // The real API returns lowercase JSON keys (success/data/token) while
-    // our DTOs are PascalCase for normal C# style — System.Text.Json is
-    // case-sensitive by default, so without this every response would
-    // silently fail to deserialize and everything would quietly fall back
-    // to local-only with no visible error.
     private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -37,7 +32,7 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
 
     public bool IsConfigured => _options.IsConfigured;
 
-    public Task<string?> SubmitMedicalIndividualAsync(
+    public Task<PlatformSubmissionResult?> SubmitMedicalIndividualAsync(
         string clientName, DateTime clientDob, string idNo, string email, string phone,
         IReadOnlyList<(string Relationship, string FullName, DateTime DateOfBirth)> familyMembers,
         CancellationToken ct = default)
@@ -61,8 +56,10 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
         return PostQuoteRequestAsync("/api/quoterequests/medical-individual", payload, ct);
     }
 
-    public Task<string?> SubmitMedicalCorporateAsync(
-        string companyName, string phone, string email, CancellationToken ct = default)
+    public Task<PlatformSubmissionResult?> SubmitMedicalCorporateAsync(
+        string companyName, string phone, string email,
+        string idNo,
+        CancellationToken ct = default)
     {
         var payload = new
         {
@@ -70,13 +67,16 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
             channel = "WEBSITE",
             companyName,
             phone,
-            email
+            email,
+            idNo
         };
         return PostQuoteRequestAsync("/api/quoterequests/medical-corporate", payload, ct);
     }
 
-    public Task<string?> SubmitProfessionalIndemnityAsync(
-        string clientOrCompanyName, string phone, string email, string profession, CancellationToken ct = default)
+    public Task<PlatformSubmissionResult?> SubmitProfessionalIndemnityAsync(
+        string clientOrCompanyName, string phone, string email, string profession,
+        string idNo,
+        CancellationToken ct = default)
     {
         var payload = new
         {
@@ -85,14 +85,16 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
             clientOrCompanyName,
             phone,
             email,
-            profession
+            profession,
+            idNo
         };
         return PostQuoteRequestAsync("/api/quoterequests/professional-indemnity", payload, ct);
     }
 
-    public Task<string?> SubmitTravelAsync(
+    public Task<PlatformSubmissionResult?> SubmitTravelAsync(
         string clientName, DateTime dob, string? kraPin, string destination,
         DateTime travelDateFrom, DateTime travelDateTo, bool travellingWithFamily, string tripType,
+        string idNo, string email,
         CancellationToken ct = default)
     {
         var payload = new
@@ -101,33 +103,39 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
             channel = "WEBSITE",
             clientName,
             dob = dob.ToString("yyyy-MM-dd"),
-            kraPin,
+            kraPin = kraPin ?? "",
             destination,
             travelDateFrom = travelDateFrom.ToString("yyyy-MM-ddTHH:mm:ss"),
             travelDateTo = travelDateTo.ToString("yyyy-MM-ddTHH:mm:ss"),
             travellingWithFamily,
-            tripType
+            tripType,
+            idNo,
+            email
         };
         return PostQuoteRequestAsync("/api/quoterequests/travel", payload, ct);
     }
 
-    public Task<string?> SubmitDomesticAsync(string detailsJson, CancellationToken ct = default)
+    public Task<PlatformSubmissionResult?> SubmitDomesticAsync(
+      string detailsJson,
+      string idNo,
+      string email,
+      CancellationToken ct = default)
     {
         var payload = new
         {
             clientId = (int?)null,
             channel = "WEBSITE",
-            detailsJson
+            idNo = idNo,
+            email = email,
+            detailsJson = detailsJson
         };
         return PostQuoteRequestAsync("/api/quoterequests/domestic", payload, ct);
     }
 
-    private async Task<string?> PostQuoteRequestAsync(string path, object payload, CancellationToken ct)
+    private async Task<PlatformSubmissionResult?> PostQuoteRequestAsync(string path, object payload, CancellationToken ct)
     {
         if (!IsConfigured)
         {
-            // Not configured yet — expected state until real credentials are
-            // supplied. Callers fall back to local persistence for this.
             return null;
         }
 
@@ -146,13 +154,13 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Headers.Add("X-Channel", "WEBSITE_GUEST");
 
+            var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
+            _logger.LogInformation("Sending to {Path}: {Payload}", path, payloadJson);
+
             using var response = await _http.SendAsync(request, ct);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                // Token may have expired server-side before our cache thought
-                // it would — clear and let the caller retry once naturally
-                // on the next submission rather than looping here.
                 _tokenCache.Clear();
                 _logger.LogWarning("Insurance Platform API returned 401 on {Path}; token cleared.", path);
                 return null;
@@ -160,14 +168,15 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Insurance Platform API {Path} returned {Status}.", path, response.StatusCode);
+                var errorBody = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogWarning("Insurance Platform API {Path} returned {Status}: {Body}", path, response.StatusCode, errorBody);
                 return null;
             }
 
             var envelope = await response.Content.ReadFromJsonAsync<ApiEnvelope<QuoteRequestResponseData>>(JsonOptions, ct);
             if (envelope is { Success: true } && envelope.Data?.QuoteRequestId is { } id)
             {
-                return id;
+                return new PlatformSubmissionResult(id, envelope.Data.RefNo);
             }
 
             _logger.LogWarning("Insurance Platform API {Path} responded without a usable quoteRequestId.", path);
@@ -175,8 +184,6 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
         }
         catch (Exception ex)
         {
-            // Network issues, timeouts, unexpected response shape — none of
-            // this should ever bubble up and block a form submission.
             _logger.LogWarning(ex, "Insurance Platform API call to {Path} failed.", path);
             return null;
         }
@@ -191,7 +198,6 @@ public sealed class InsurancePlatformClient : IInsurancePlatformClient
 
         using var releaser = await _tokenCache.LockAsync(ct);
 
-        // Re-check — another request may have logged in while we waited.
         if (_tokenCache.HasValidToken)
         {
             return _tokenCache.Token;

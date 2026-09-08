@@ -49,6 +49,7 @@ public class MedicalCorporateModel : PageModel
             ContactPhone = Input.Phone,
             Details = new()
             {
+                ["IdNo"] = Input.IdNo,
                 ["CompanyName"] = Input.CompanyName,
                 ["NumberOfEmployees"] = Input.NumberOfEmployees.ToString(),
                 ["CoverLevel"] = Input.CoverLevel
@@ -60,7 +61,6 @@ public class MedicalCorporateModel : PageModel
         return Page();
     }
 
-    // PENDING: confirm against Amura's actual per-product field spec.
     public class FormInput
     {
         [Required, StringLength(160)]
@@ -68,6 +68,9 @@ public class MedicalCorporateModel : PageModel
 
         [Required, StringLength(120)]
         public string ContactPerson { get; set; } = string.Empty;
+
+        [Required, StringLength(40)]  // ← ADD THIS
+        public string IdNo { get; set; } = string.Empty;
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
@@ -81,7 +84,6 @@ public class MedicalCorporateModel : PageModel
         [Required]
         public string CoverLevel { get; set; } = "Standard";
 
-        // Honeypot — real users never see or fill this in.
         public string? Website { get; set; }
     }
 }

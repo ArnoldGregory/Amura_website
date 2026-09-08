@@ -31,10 +31,8 @@ public class MedicalIndividualModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        // Server-side rule from the platform: at most one Spouse among the
-        // dependant rows (any number of Children is fine).
-        var rows = new[] { Input.Dependent1, Input.Dependent2, Input.Dependent3, Input.Dependent4, Input.Dependent5 };
-        var spouseCount = rows.Count(d => d.Relationship == "Spouse" && !string.IsNullOrWhiteSpace(d.FullName));
+        var dependentRows = Input.Dependents ?? new List<DependentInput>();
+        var spouseCount = dependentRows.Count(d => d.Relationship == "Spouse" && !string.IsNullOrWhiteSpace(d.FullName));
         if (spouseCount > 1)
         {
             ModelState.AddModelError(string.Empty, "Only one spouse can be listed per quote.");
@@ -51,22 +49,41 @@ public class MedicalIndividualModel : PageModel
             return Page();
         }
 
-        var familyMembers = rows
+        var familyMembers = dependentRows
             .Where(d => !string.IsNullOrWhiteSpace(d.FullName) && d.Relationship != "None" && d.DateOfBirth.HasValue)
             .Select(d => new { relationship = d.Relationship, fullName = d.FullName!, dateOfBirth = d.DateOfBirth!.Value.ToString("yyyy-MM-dd") })
             .ToList();
 
+        // Real platform API only knows clientName as one string — build it
+        // from the split name fields for that call, while still keeping
+        // First/Last/Other separately in our own local record below.
+        var fullName = string.Join(" ", new[] { Input.FirstName, Input.OtherNames, Input.LastName }
+            .Where(s => !string.IsNullOrWhiteSpace(s)));
+
         var submission = new QuoteSubmission
         {
             Type = SubmissionType.MedicalIndividual,
-            ContactName = Input.FullName,
+            ContactName = fullName,
             ContactEmail = Input.Email,
-            ContactPhone = Input.Phone,
+            ContactPhone = Input.MobileNumber,
             Details = new()
             {
+                ["FirstName"] = Input.FirstName,
+                ["LastName"] = Input.LastName,
+                ["OtherNames"] = Input.OtherNames ?? string.Empty,
                 ["IdNo"] = Input.IdNo,
                 ["DateOfBirth"] = Input.DateOfBirth!.Value.ToString("yyyy-MM-dd"),
-                ["FamilyMembersJson"] = JsonSerializer.Serialize(familyMembers)
+                ["FamilyMembersJson"] = JsonSerializer.Serialize(familyMembers),
+
+                // Local-only fields — not part of the real platform API's
+                // confirmed schema, kept here for staff to see when pricing
+                // the quote manually.
+                ["InpatientLimit"] = Input.InpatientLimit,
+                ["OutpatientEnabled"] = Input.OutpatientEnabled.ToString(),
+                ["OutpatientLimit"] = Input.OutpatientEnabled ? (Input.OutpatientLimit ?? string.Empty) : string.Empty,
+                ["DentalEnabled"] = Input.DentalEnabled.ToString(),
+                ["DentalLimit"] = Input.DentalEnabled ? (Input.DentalLimit ?? string.Empty) : string.Empty,
+                ["MaternityEnabled"] = Input.MaternityEnabled.ToString()
             }
         };
 
@@ -82,18 +99,27 @@ public class MedicalIndividualModel : PageModel
         public DateTime? DateOfBirth { get; set; }
     }
 
-    // Field set confirmed against the real platform's
-    // POST /api/quoterequests/medical-individual contract.
+    // Field set matches the real platform's medical-individual contract
+    // (idNo, clientDob, email, phone, familyMembers) plus split name fields
+    // and coverage-preference fields the client asked for on top — those
+    // extras are local-only, see the comment in OnPostAsync above.
     public class FormInput
     {
-        [Required, StringLength(120)]
-        public string FullName { get; set; } = string.Empty;
+        [Required, StringLength(60)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required, StringLength(60)]
+        public string LastName { get; set; } = string.Empty;
+
+        [StringLength(60)]
+        public string? OtherNames { get; set; }
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         [Required, Phone]
-        public string Phone { get; set; } = string.Empty;
+        [Display(Name = "Mobile number")]
+        public string MobileNumber { get; set; } = string.Empty;
 
         [Required, StringLength(40)]
         [Display(Name = "National ID / Passport number")]
@@ -102,14 +128,26 @@ public class MedicalIndividualModel : PageModel
         [Required(ErrorMessage = "Date of birth is required."), DataType(DataType.Date)]
         public DateTime? DateOfBirth { get; set; }
 
-        // Up to 5 dependant rows — matches the platform's familyMembers[]
-        // array (relationship must be "Spouse", at most one, or "Child",
-        // any number). Blank rows are simply not sent.
-        public DependentInput Dependent1 { get; set; } = new();
-        public DependentInput Dependent2 { get; set; } = new();
-        public DependentInput Dependent3 { get; set; } = new();
-        public DependentInput Dependent4 { get; set; } = new();
-        public DependentInput Dependent5 { get; set; } = new();
+        [Required]
+        [Display(Name = "Inpatient limit")]
+        public string InpatientLimit { get; set; } = "1000000";
+
+        [Display(Name = "Outpatient cover")]
+        public bool OutpatientEnabled { get; set; }
+        public string? OutpatientLimit { get; set; }
+
+        [Display(Name = "Dental cover")]
+        public bool DentalEnabled { get; set; }
+        public string? DentalLimit { get; set; }
+
+        [Display(Name = "Maternity cover")]
+        public bool MaternityEnabled { get; set; }
+
+        // Unlimited dependants — starts with one empty row; the page's
+        // script appends another automatically each time the last row's
+        // relationship is set to Spouse or Child. Standard ASP.NET Core
+        // list binding: Input.Dependents[0].FullName, [1].FullName, etc.
+        public List<DependentInput> Dependents { get; set; } = new() { new DependentInput() };
 
         // Honeypot — real users never see or fill this in.
         public string? Website { get; set; }

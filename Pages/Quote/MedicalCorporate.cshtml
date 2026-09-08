@@ -5,14 +5,6 @@
     ViewData["Description"] = "Get a quote for corporate group medical cover from Amura Insurance Agency.";
 }
 
-<section class="hero" style="padding: 6rem 0 4.5rem;">
-    <div class="container hero-content">
-        <span class="hero-kicker">Medical — Corporate</span>
-        <h1 style="font-size:clamp(2rem,4vw,2.8rem); max-width: 20ch;">Get a group cover quote.</h1>
-        <p class="lead">Tell us about your team and we'll put together options.</p>
-    </div>
-</section>
-
 <section class="section">
     <div class="container">
         <div class="row g-5">
@@ -44,6 +36,11 @@
                                 <label asp-for="Input.ContactPerson" class="form-label">Contact person</label>
                                 <input asp-for="Input.ContactPerson" class="form-control" placeholder="Jane Wanjiku" />
                                 <span asp-validation-for="Input.ContactPerson" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.IdNo" class="form-label">Contact person National ID / Passport number</label>
+                                <input asp-for="Input.IdNo" class="form-control" placeholder="e.g. 33333333" />
+                                <span asp-validation-for="Input.IdNo" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="Input.Phone" class="form-label">Phone</label>

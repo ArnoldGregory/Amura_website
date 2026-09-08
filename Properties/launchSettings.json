@@ -15,18 +15,16 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5044",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InsurancePlatform__WebsiteGuestApiKey": "website-guest-test-key-2026"
       }
-    },
-    "environmentVariables": {
-      "ASPNETCORE_ENVIRONMENT": "Development",
-      "InsurancePlatform__WebsiteGuestApiKey": "website-guest-test-key-2026"
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InsurancePlatform__WebsiteGuestApiKey": "website-guest-test-key-2026"
       }
     }
   }

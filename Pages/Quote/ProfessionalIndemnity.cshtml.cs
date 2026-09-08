@@ -34,7 +34,6 @@ public class ProfessionalIndemnityModel : PageModel
 
         if (SpamGuard.LooksLikeSpam(Input.Website, FormToken))
         {
-            // Looks automated — don't advance to the proposal form or persist.
             return RedirectToPage("/Index");
         }
 
@@ -46,6 +45,7 @@ public class ProfessionalIndemnityModel : PageModel
             ContactPhone = Input.Phone,
             Details = new()
             {
+                ["IdNo"] = Input.IdNo,
                 ["Profession"] = Input.Profession,
                 ["YearsInPractice"] = Input.YearsInPractice.ToString()
             }
@@ -53,16 +53,16 @@ public class ProfessionalIndemnityModel : PageModel
 
         var reference = await _submissions.SubmitAsync(submission);
 
-        // Per the project plan: Professional Indemnity capture redirects
-        // into a separate proposal form rather than ending here.
         return RedirectToPage("Proposal", new { reference });
     }
 
-    // PENDING: confirm against Amura's actual per-product field spec.
     public class FormInput
     {
         [Required, StringLength(120)]
         public string FullName { get; set; } = string.Empty;
+
+        [Required, StringLength(40)]
+        public string IdNo { get; set; } = string.Empty;
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
@@ -76,7 +76,6 @@ public class ProfessionalIndemnityModel : PageModel
         [Range(0, 60)]
         public int YearsInPractice { get; set; }
 
-        // Honeypot — real users never see or fill this in.
         public string? Website { get; set; }
     }
 }

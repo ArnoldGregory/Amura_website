@@ -54,6 +54,7 @@ public class TravelModel : PageModel
             ContactPhone = Input.Phone,
             Details = new()
             {
+                ["IdNo"] = Input.IdNo,  // ← ADDED THIS LINE
                 ["DateOfBirth"] = Input.DateOfBirth!.Value.ToString("yyyy-MM-dd"),
                 ["KraPin"] = Input.KraPin ?? string.Empty,
                 ["Destination"] = Input.Destination,
@@ -69,15 +70,14 @@ public class TravelModel : PageModel
         return Page();
     }
 
-    // Field set confirmed against the real platform's
-    // POST /api/quoterequests/travel contract. tripType must be
-    // VACATION, BUSINESS, or SPORTS. Email/phone aren't part of the
-    // platform's schema for this endpoint but are kept here for our own
-    // follow-up records.
     public class FormInput
     {
         [Required, StringLength(120)]
         public string FullName { get; set; } = string.Empty;
+
+        [Required, StringLength(40)]  // ← ADDED THIS BLOCK
+        [Display(Name = "National ID / Passport number")]
+        public string IdNo { get; set; } = string.Empty;
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
@@ -108,7 +108,6 @@ public class TravelModel : PageModel
         [Required]
         public string TripType { get; set; } = "VACATION";
 
-        // Honeypot — real users never see or fill this in.
         public string? Website { get; set; }
     }
 }
