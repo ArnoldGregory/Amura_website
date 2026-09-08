@@ -63,11 +63,10 @@ public sealed class ComprehensiveBenefitDto
 
 public sealed class ComprehensiveLiabilityLimitDto
 {
-    public int LiabilityId { get; set; }
-    public string LiabilityCode { get; set; } = string.Empty;
-    public string LiabilityName { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
-    public string Unit { get; set; } = string.Empty;
+    public int LiabilityLimitId { get; set; }
+    public string LimitName { get; set; } = string.Empty;
+    public string LimitValue { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
 }
 
 // --- Client ---
