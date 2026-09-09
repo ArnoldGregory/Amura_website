@@ -2,7 +2,7 @@
 @model AmuraWebsite.Pages.Quote.Motor.ComprehensiveQuoteModel
 @{
     ViewData["Title"] = "Comprehensive Motor Insurance — Get a Quote";
-    ViewData["Description"] = "Compare live comprehensive motor insurance prices from Amura Insurance Agency's underwriter partners.";
+    ViewData["Description"] = "Compare live comprehensive motor insurance prices from Amura Insurance Agency's underwriter partners, and add optional benefits.";
 }
 
 <section class="section">
@@ -38,7 +38,7 @@
             <div class="col-lg-4 reveal">
                 <span class="eyebrow">Comprehensive cover</span>
                 <h2 class="mt-3 mb-4" style="font-size:1.5rem; font-weight:600;">Full protection</h2>
-                <p class="text-muted">Covers damage to your own vehicle as well as third-party liability — compare live prices across our underwriter partners with no obligation.</p>
+                <p class="text-muted">Covers damage to your own vehicle as well as third-party liability. Start with the base premium, then tick optional benefits to build richer cover.</p>
             </div>
         </div>
     </div>
@@ -53,57 +53,87 @@
                     <div class="contact-card">
                         <h3 style="font-size:1.15rem; font-weight:700; margin: 0 0 0.2rem;">Your prices</h3>
                         <p class="text-muted small mb-3">
-                            @Model.Quote.Options.Count underwriter(s) compared for a vehicle valued at <strong>KES @Model.Input.VehicleValue.ToString("N0")</strong>. Prices below are the annual premium.
+                            @Model.Quote.Options.Count underwriter(s) compared for a vehicle valued at <strong>KES @Model.Input.VehicleValue.ToString("N0")</strong>. Tick any optional benefits to add them to the premium.
                         </p>
 
                         @foreach (var option in Model.Quote.Options.OrderBy(p => p.TotalPremium))
                         {
-                            <div class="mb-3" style="border:1px solid var(--line-on-light); border-radius: var(--radius-md); padding: 1.25rem;">
+                            var key = option.UnderwriterId.ToString();
+                            var benefits = Model.Quote.BenefitsByUnderwriter.TryGetValue(key, out var uwBenefits)
+                                ? uwBenefits.OrderBy(b => b.DisplayOrder).ToList()
+                                : new List<AmuraWebsite.Services.ComprehensiveBenefitDto>();
+                            var included = benefits.Where(b => b.IsIncludedInBase).ToList();
+                            var addons = benefits.Where(b => !b.IsIncludedInBase).ToList();
+                            var limits = Model.Quote.LiabilityLimitsByUnderwriter.TryGetValue(key, out var uwLimits)
+                                ? uwLimits.OrderBy(l => l.DisplayOrder).ToList()
+                                : new List<AmuraWebsite.Services.ComprehensiveLiabilityLimitDto>();
+                            var baseTotal = option.BasePremium + option.PvtAmount;
+
+                            <div class="mb-3" style="border:1px solid var(--line-on-light); border-radius: var(--radius-md); padding: 1.25rem;" data-underwriter-card="@option.UnderwriterId">
                                 <div class="d-flex justify-content-between align-items-start flex-wrap">
                                     <strong>@option.UnderwriterName</strong>
-                                    <div style="font-size:1.4rem; font-weight:700; color: var(--gold-2);">
-                                        KES @option.TotalPremium.ToString("N0")
+                                    <div style="font-size:1.5rem; font-weight:700; color: var(--gold-2);">
+                                        <span data-total>KES @baseTotal.ToString("N0")</span>
+                                        <span class="text-muted d-block" style="font-size:0.8rem; font-weight:500; text-align:right;">base + selected benefits</span>
                                     </div>
                                 </div>
                                 <div class="text-muted small mb-2">
-                                    Base premium KES @option.BasePremium.ToString("N0") &middot; Rate @option.RatePercent.ToString("0.####")% &middot; PVT KES @option.PvtAmount.ToString("N0")
+                                    Base premium KES @option.BasePremium.ToString("N0") &middot; PVT KES @option.PvtAmount.ToString("N0") &middot; Rate @option.RatePercent.ToString("0.####")%
                                 </div>
 
-                                @{
-                                    var benefits = Model.Quote.BenefitsByUnderwriter.TryGetValue(option.UnderwriterId.ToString(), out var uwBenefits)
-                                        ? uwBenefits : new List<AmuraWebsite.Services.ComprehensiveBenefitDto>();
-                                    var included = benefits.Where(b => b.IsIncludedInBase).ToList();
-                                    var addons = benefits.Where(b => !b.IsIncludedInBase).ToList();
-                                    var limits = Model.Quote.LiabilityLimitsByUnderwriter.TryGetValue(option.UnderwriterId.ToString(), out var uwLimits)
-                                        ? uwLimits : new List<AmuraWebsite.Services.ComprehensiveLiabilityLimitDto>();
-                                }
+                                <input type="hidden" data-base-total="@baseTotal" />
 
                                 @if (included.Count > 0)
                                 {
-                                    <div class="small mb-1"><strong>Included in base:</strong>
+                                    <div class="small mb-2"><strong>Included in base:</strong>
                                         @foreach (var b in included)
                                         {
                                             <span class="badge bg-success-subtle text-success-emphasis me-1">@b.BenefitName</span>
                                         }
                                     </div>
                                 }
+
                                 @if (addons.Count > 0)
                                 {
-                                    <div class="small mb-1"><strong>Optional add-ons:</strong>
+                                    <div class="small mb-1"><strong>Optional benefits (tick to add):</strong></div>
+                                    <div class="row g-2 mb-2">
                                         @foreach (var b in addons)
                                         {
-                                            <span class="badge bg-secondary-subtle text-secondary-emphasis me-1">
-                                                @b.BenefitName@(b.DefaultPrice > 0 ? " (+KES " + b.DefaultPrice.ToString("N0") + ")" : "")
-                                            </span>
+                                            var price = b.DefaultPrice;
+                                            <div class="col-md-6">
+                                                <label class="d-flex align-items-center" style="border:1px solid var(--line-on-light); border-radius: var(--radius-sm, 10px); padding: 0.5rem 0.7rem; cursor:pointer;">
+                                                    <input type="checkbox" class="form-check-input me-2 benefit-check" data-price="@price" @(price == 0 ? "disabled" : "") />
+                                                    <span class="d-flex justify-content-between align-items-center flex-grow-1">
+                                                        <span>
+                                                            <span class="d-block" style="font-weight:600;">@b.BenefitName</span>
+                                                            @if (!string.IsNullOrEmpty(b.Description))
+                                                            {
+                                                                <span class="d-block text-muted" style="font-size:0.75rem;">@b.Description</span>
+                                                            }
+                                                        </span>
+                                                        <span class="ms-2 text-nowrap" style="font-weight:600;">
+                                                            @if (price > 0)
+                                                            {
+                                                                <span>+KES @price.ToString("N0")</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-success">Free</span>
+                                                            }
+                                                        </span>
+                                                    </span>
+                                                </label>
+                                            </div>
                                         }
                                     </div>
                                 }
+
                                 @if (limits.Count > 0)
                                 {
                                     <details class="small text-muted mt-1">
                                         <summary>Coverage limits</summary>
                                         <ul class="mb-0 ps-3 mt-1">
-                                            @foreach (var l in limits.OrderBy(l => l.DisplayOrder))
+                                            @foreach (var l in limits)
                                             {
                                                 <li><strong>@l.LimitName:</strong> @l.LimitValue</li>
                                             }
@@ -118,9 +148,33 @@
                 <div class="col-lg-4 reveal">
                     <span class="eyebrow">Next steps</span>
                     <h2 class="mt-3 mb-3" style="font-size:1.3rem; font-weight:600;">Like what you see?</h2>
-                    <p class="text-muted">Contact us to arrange your cover, or head to <a asp-page="/Quote/Motor">Get a Motor Quote</a> to request a call-back with these prices.</p>
+                    <p class="text-muted">Ticking a benefit adds its premium to that underwriter's price. Contact us to arrange your cover, or head to <a asp-page="/Quote/Motor">Get a Motor Quote</a> to request a call-back.</p>
                 </div>
             </div>
         </div>
     </section>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('[data-underwriter-card]').forEach(function (card) {
+            var baseTotal = parseFloat(card.querySelector('[data-base-total]').getAttribute('data-base-total'));
+            var totalEl = card.querySelector('[data-total]');
+            var checks = card.querySelectorAll('.benefit-check:not([disabled])');
+
+            var refresh = function () {
+                var sum = baseTotal;
+                checks.forEach(function (chk) {
+                    if (chk.checked) {
+                        sum += parseFloat(chk.getAttribute('data-price'));
+                    }
+                });
+                totalEl.textContent = 'KES ' + sum.toLocaleString('en-KE', { minimumFractionDigits: 0 });
+            };
+
+            checks.forEach(function (chk) {
+                chk.addEventListener('change', refresh);
+            });
+        });
+    </script>
 }

@@ -42,7 +42,7 @@ builder.Services.AddSingleton<MotorSessionStore>();
 var app = builder.Build();
 
 // Behind nginx (reverse proxy) in production — trust the X-Forwarded-*
-// headers so HTTPS redirection, HSTS, and client IP all work correctly.
+// headers so HTTPS redirection, HSTS, and client IP all work correctly. 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto

@@ -59,6 +59,7 @@ public sealed class ComprehensiveBenefitDto
     public bool IsIncludedInBase { get; set; }
     public decimal DefaultPrice { get; set; }
     public string? Description { get; set; }
+    public int DisplayOrder { get; set; }
 }
 
 public sealed class ComprehensiveLiabilityLimitDto
