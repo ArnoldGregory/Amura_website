@@ -23,6 +23,9 @@
                         <form method="post" novalidate>
                             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
+                            <input type="hidden" asp-for="PreselectedUnderwriterId" />
+                            <input type="hidden" asp-for="PreselectedPrice" />
+
                             <h4 style="font-size:1rem; font-weight:700;">Your Information</h4>
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
@@ -145,7 +148,7 @@
                                     <label class="form-label">Cover type</label>
                                     <div class="d-flex flex-column flex-md-row gap-2">
                                         <label class="d-flex align-items-center flex-grow-1" style="border:1px solid var(--line-on-light); border-radius: var(--radius-md); padding: 0.9rem 1.1rem; cursor:pointer;">
-                                            <input asp-for="Input.CoverType" type="radio" value="TPO" class="form-check-input me-2" checked />
+                                            <input asp-for="Input.CoverType" type="radio" value="TPO" class="form-check-input me-2" />
                                             <span>
                                                 <strong>Third Party Only (TPO)</strong>
                                                 <span class="d-block text-muted small">Covers damage you cause to others — the most affordable option.</span>
@@ -201,15 +204,21 @@
                         </form>
 
                         <script>
-                            document.querySelectorAll('input[name="Input.CoverType"]').forEach(function (el) {
-                                el.addEventListener('change', function () {
-                                    var show = this.value === 'COMPREHENSIVE';
-                                    document.querySelector('.vehicle-value-field').style.display = show ? 'block' : 'none';
-                                    var field = document.getElementById('Input_VehicleValue');
-                                    if (field) { field.required = show; }
-                                });
-                            });
-                        </script>
+                                (function () {
+                                    var radios = document.querySelectorAll('input[name="Input.CoverType"]');
+                                    function sync() {
+                                        var selected = document.querySelector('input[name="Input.CoverType"]:checked');
+                                        var show = !!selected && selected.value === 'COMPREHENSIVE';
+                                        document.querySelector('.vehicle-value-field').style.display = show ? 'block' : 'none';
+                                        var field = document.getElementById('Input_VehicleValue');
+                                        if (field) { field.required = show; }
+                                    }
+                                    radios.forEach(function (el) {
+                                        el.addEventListener('change', sync);
+                                    });
+                                    sync();
+                                })();
+                            </script>
                     }
                 </div>
             </div>

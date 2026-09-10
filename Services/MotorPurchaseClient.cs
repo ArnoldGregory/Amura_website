@@ -86,7 +86,8 @@ public sealed class MotorPurchaseClient : IMotorPurchaseClient
             email,
             phone,
             address,
-            kraPin
+            kraPin,
+            registrationChannel = "WEBSITE"
         };
         var data = await PostAsync<CreateClientResponseData>("/api/clients", payload, ct);
         return data?.ClientId;

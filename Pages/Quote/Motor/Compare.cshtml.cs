@@ -64,7 +64,10 @@ public class CompareModel : PageModel
                 ErrorMessage = "Please select one of the price options below.";
                 return Page();
             }
-            chosenPrice = chosen.TotalPremium;
+            // If the user came from the quote page with benefits selected, honour that price.
+            chosenPrice = State.SelectedUnderwriterId == Input.UnderwriterId && State.SelectedPrice.HasValue
+                ? State.SelectedPrice.Value
+                : chosen.TotalPremium;
             State.SelectedUnderwriterName = chosen.UnderwriterName;
         }
         else

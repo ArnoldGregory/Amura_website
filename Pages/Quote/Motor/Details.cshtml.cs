@@ -19,12 +19,19 @@ public class DetailsModel : PageModel
     [BindProperty]
     public FormInput Input { get; set; } = new();
 
+    // Pre-selections carried over from the comprehensive quote page ("Continue to Buy").
+    [BindProperty]
+    public int? PreselectedUnderwriterId { get; set; }
+
+    [BindProperty]
+    public decimal? PreselectedPrice { get; set; }
+
     public List<VehicleClassDto> VehicleClasses { get; set; } = new();
     public List<PeriodDto> Periods { get; set; } = new();
     public string? ErrorMessage { get; set; }
     public bool IsConfigured => _client.IsConfigured;
 
-    public async Task<IActionResult> OnGetAsync()
+    public async Task<IActionResult> OnGetAsync(string? coverType, decimal? vehicleValue, int? underwriterId, decimal? premium)
     {
         _sessionStore.Clear(HttpContext.Session);
 
@@ -32,6 +39,15 @@ public class DetailsModel : PageModel
         {
             ErrorMessage = "Motor purchase isn't available right now — please use the Get a Quote form instead, or contact us directly.";
             return Page();
+        }
+
+        // Arriving from the comprehensive quote page with a chosen underwriter — pre-fill the form.
+        if (coverType == "COMPREHENSIVE" && vehicleValue.HasValue)
+        {
+            Input.CoverType = "COMPREHENSIVE";
+            Input.VehicleValue = vehicleValue;
+            PreselectedUnderwriterId = underwriterId;
+            PreselectedPrice = premium;
         }
 
         await LoadCatalogAsync();
@@ -141,6 +157,12 @@ public class DetailsModel : PageModel
                 return Page();
             }
             state.ComprehensiveQuote = quote;
+            // Keep the underwriter + price the user picked on the quote page.
+            if (PreselectedUnderwriterId.HasValue)
+            {
+                state.SelectedUnderwriterId = PreselectedUnderwriterId;
+                state.SelectedPrice = PreselectedPrice;
+            }
         }
         else
         {
